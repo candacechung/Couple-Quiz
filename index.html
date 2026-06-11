@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dream Date Decoder</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=boska@400,500,700&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+      --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem;
+      --color-bg: #f7f6f2; --color-surface: #f9f8f5; --color-surface-2: #fbfbf9; --color-surface-offset: #f1ede7;
+      --color-text: #2a241d; --color-text-muted: #726d67; --color-text-faint: #a59f98; --color-text-inverse: #fcfbf8;
+      --color-primary: #8a4fff; --color-primary-hover: #7237eb; --color-primary-soft: #efe7ff; --color-secondary: #ff7a9e; --color-secret: #01696f;
+      --color-border: rgba(42,36,29,.12); --color-divider: rgba(42,36,29,.08);
+      --shadow-sm: 0 1px 2px rgba(42,36,29,.05); --shadow-md: 0 10px 30px rgba(42,36,29,.08);
+      --radius-md: .9rem; --radius-lg: 1.3rem; --radius-xl: 1.8rem; --radius-full: 999px;
+      --font-display: 'Boska', Georgia, serif; --font-body: 'Satoshi', Inter, sans-serif;
+      --content: 1180px;
+    }
+    [data-theme="dark"] {
+      --color-bg: #171614; --color-surface: #1c1b19; --color-surface-2: #211f1d; --color-surface-offset: #262320;
+      --color-text: #ece6df; --color-text-muted: #b6afa7; --color-text-faint: #7e786f; --color-text-inverse: #171614;
+      --color-primary: #b48cff; --color-primary-hover: #c4a7ff; --color-primary-soft: rgba(180,140,255,.16); --color-secondary: #ff94b0; --color-secret: #63c0ba;
+      --color-border: rgba(236,230,223,.12); --color-divider: rgba(236,230,223,.08);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.2); --shadow-md: 0 10px 30px rgba(0,0,0,.3);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font-body); font-size: var(--text-base); line-height: 1.6;
+      color: var(--color-text); background:
+        radial-gradient(circle at top left, rgba(138,79,255,.10), transparent 28%),
+        radial-gradient(circle at top right, rgba(255,122,158,.10), transparent 24%),
+        var(--color-bg);
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; border: 0; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip: rect(0,0,0,0); white-space:nowrap; border:0; }
+    .shell { width: min(calc(100% - 2rem), var(--content)); margin: 0 auto; }
+    .skip-link { position: absolute; left: -999px; top: var(--space-3); background: var(--color-primary); color: var(--color-text-inverse); padding: var(--space-3) var(--space-4); border-radius: var(--radius-full); z-index: 100; }
+    .skip-link:focus { left: var(--space-4); }
+    header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: color-mix(in srgb, var(--color-bg) 76%, transparent); border-bottom: 1px solid var(--color-divider); }
+    .nav { display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); padding: var(--space-4) 0; }
+    .brand { display:flex; align-items:center; gap:var(--space-3); font-weight:700; letter-spacing:.01em; }
+    .brand svg { width: 36px; height: 36px; color: var(--color-primary); }
+    .nav-actions { display:flex; align-items:center; gap: var(--space-3); }
+    .pill, .mini-pill {
+      display:inline-flex; align-items:center; gap:.5rem; padding:.55rem .9rem; border-radius: var(--radius-full);
+      background: var(--color-surface); border:1px solid var(--color-border); color: var(--color-text-muted); font-size: var(--text-sm);
+    }
+    .mini-pill { padding:.45rem .72rem; font-size: var(--text-xs); }
+    .secret-pill { background: color-mix(in srgb, var(--color-secret) 10%, var(--color-surface)); color: var(--color-secret); border-color: color-mix(in srgb, var(--color-secret) 30%, var(--color-border)); }
+    .icon-btn {
+      min-width: 44px; min-height: 44px; border-radius: var(--radius-full); background: var(--color-surface);
+      border: 1px solid var(--color-border); color: var(--color-text); display:grid; place-items:center;
+    }
+    main { padding: var(--space-8) 0 var(--space-16); }
+    .hero { display:grid; grid-template-columns: 1.1fr .9fr; gap: var(--space-8); align-items: stretch; padding: var(--space-10) 0 var(--space-8); }
+    .hero-card, .panel { background: color-mix(in srgb, var(--color-surface) 88%, white 12%); border: 1px solid var(--color-border); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); }
+    .hero-copy { padding: clamp(1.5rem, 3vw, 3rem); display:flex; flex-direction:column; justify-content:center; }
+    .eyebrow { display:inline-flex; width: fit-content; align-items:center; gap:.5rem; border-radius: var(--radius-full); background: var(--color-primary-soft); color: var(--color-primary); padding:.5rem .9rem; font-size: var(--text-sm); font-weight:700; }
+    h1 { font-family: var(--font-display); font-size: var(--text-2xl); line-height: 1.04; margin: var(--space-4) 0; max-width: 12ch; }
+    .lead { color: var(--color-text-muted); max-width: 60ch; }
+    .hero-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); padding: clamp(1rem, 2vw, 1.5rem); }
+    .mini-card { background: var(--color-surface-2); border:1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); min-height: 150px; display:flex; flex-direction:column; justify-content:space-between; }
+    .mini-card strong { font-size: var(--text-lg); }
+    .mini-card span { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .layout { display:grid; grid-template-columns: 1.22fr .78fr; gap: var(--space-8); align-items:start; }
+    .quiz-card, .side-panel, .planner-panel { padding: clamp(1.2rem, 2vw, 2rem); }
+    .meta { display:flex; flex-wrap:wrap; gap: var(--space-3); margin-bottom: var(--space-6); }
+    .progress-wrap { margin-bottom: var(--space-6); }
+    .progress-top { display:flex; justify-content:space-between; gap:var(--space-4); color: var(--color-text-muted); font-size: var(--text-sm); margin-bottom: .65rem; }
+    .progress-bar { height: 12px; background: var(--color-surface-offset); border-radius: var(--radius-full); overflow:hidden; }
+    .progress-fill { height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); transition: width .3s ease; }
+    .question { display:none; animation: fade .28s ease; }
+    .question.active { display:block; }
+    @keyframes fade { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
+    .question h2 { font-size: var(--text-xl); line-height: 1.15; margin: 0 0 var(--space-2); }
+    .question p { margin: 0 0 var(--space-5); color: var(--color-text-muted); }
+    .options { display:grid; gap: var(--space-3); }
+    .choice {
+      width:100%; text-align:left; padding: 1rem 1.05rem; border-radius: var(--radius-lg); border:1px solid var(--color-border);
+      background: var(--color-surface-2); color: var(--color-text); min-height: 56px;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .choice:hover, .choice:focus-visible { transform: translateY(-2px); border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border)); box-shadow: var(--shadow-sm); }
+    .choice.selected { background: color-mix(in srgb, var(--color-primary-soft) 75%, var(--color-surface-2)); border-color: var(--color-primary); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 45%, transparent); }
+    .free-text { width:100%; min-height: 136px; resize: vertical; padding: 1rem; border-radius: var(--radius-lg); border:1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text); }
+    .controls { display:flex; justify-content:space-between; gap: var(--space-4); margin-top: var(--space-6); }
+    .btn { min-height: 48px; padding: .85rem 1.15rem; border-radius: var(--radius-full); font-weight:700; display:inline-flex; align-items:center; justify-content:center; gap:.5rem; }
+    .btn-primary { background: var(--color-primary); color: var(--color-text-inverse); }
+    .btn-secondary { background: var(--color-surface-2); color: var(--color-text); border:1px solid var(--color-border); }
+    .btn-secret { background: var(--color-secret); color: var(--color-text-inverse); }
+    .side-panel, .planner-panel { display:grid; gap: var(--space-5); }
+    .side-panel h3, .planner-panel h3 { margin:0; font-size: var(--text-lg); }
+    .side-panel p, .planner-panel p { margin:0; color: var(--color-text-muted); font-size: var(--text-sm); }
+    .tip-list { display:grid; gap: .85rem; }
+    .tip-item { padding: .95rem 1rem; border:1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface-2); font-size: var(--text-sm); }
+    .result, .planner-view { display:none; }
+    .result.active, .planner-view.active { display:block; animation: fade .32s ease; }
+    .result-grid, .planner-grid { display:grid; gap: var(--space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: var(--space-5); }
+    .result-card, .planner-card { border-radius: var(--radius-lg); background: var(--color-surface-2); border: 1px solid var(--color-border); padding: var(--space-5); }
+    .result-card h4, .planner-card h4 { margin: 0 0 .35rem; font-size: var(--text-lg); }
+    .result-card p, .planner-card p { margin: 0; color: var(--color-text-muted); }
+    .insight-box { margin-top: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); background: var(--color-surface-offset); border: 1px dashed var(--color-border); }
+    .tag-cloud { display:flex; flex-wrap:wrap; gap:.55rem; margin-top:1rem; }
+    .mini-tag { display:inline-flex; padding:.45rem .75rem; border-radius: var(--radius-full); background: var(--color-surface-offset); border:1px solid var(--color-border); font-size: var(--text-xs); color: var(--color-text-muted); }
+    .score-table { width:100%; margin-top: var(--space-5); }
+    .score-table th, .score-table td { text-align:left; padding:.85rem .75rem; border-bottom:1px solid var(--color-divider); vertical-align: top; }
+    .score-table th { font-size: var(--text-sm); color: var(--color-text-muted); font-weight:700; }
+    .score-chip { display:inline-flex; align-items:center; justify-content:center; min-width: 2.25rem; padding:.25rem .55rem; border-radius: var(--radius-full); background: color-mix(in srgb, var(--color-secret) 12%, var(--color-surface)); color: var(--color-secret); font-size: var(--text-sm); font-weight:700; }
+    .planner-login { display:grid; gap: var(--space-4); }
+    .input { width:100%; min-height:48px; padding:.85rem 1rem; border-radius: var(--radius-lg); border:1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text); }
+    .subtle { color: var(--color-text-faint); font-size: var(--text-xs); }
+    .footer-note { margin-top: var(--space-5); color: var(--color-text-faint); font-size: var(--text-sm); }
+    @media (max-width: 980px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .planner-grid, .result-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell { width: min(calc(100% - 1rem), var(--content)); }
+      .hero-grid { grid-template-columns: 1fr; }
+      .controls { flex-direction: column-reverse; }
+      .btn { width: 100%; }
+      .pill { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <header>
+    <div class="shell nav">
+      <div class="brand" aria-label="Dream Date Decoder logo">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+          <path d="M32 55c12.703 0 23-10.297 23-23S44.703 9 32 9 9 19.297 9 32s10.297 23 23 23Z" stroke="currentColor" stroke-width="3"/>
+          <path d="M23 24c2.5-3.5 6-5.5 9-5.5s6.5 2 9 5.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M21 37c3.5 5 7.5 8 11 8s7.5-3 11-8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="22.5" cy="30" r="2.5" fill="currentColor"/>
+          <circle cx="41.5" cy="30" r="2.5" fill="currentColor"/>
+        </svg>
+        <div>
+          <div>Dream Date Decoder</div>
+          <div style="font-size:var(--text-xs); color:var(--color-text-muted); font-weight:500;">Remote-friendly couples quiz</div>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <div class="pill">Looks like a cute quiz to him</div>
+        <div class="pill secret-pill">Planner view hidden behind passcode</div>
+        <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark mode">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <article class="hero-card hero-copy">
+        <div class="eyebrow">Just a silly little couples quiz</div>
+        <h1 id="hero-title">Send him the quiz link, then keep the real planner view for yourself.</h1>
+        <p class="lead">He sees a normal compatibility-style result page with personality interpretations. You can open the hidden planner section on your side and see his exact answers, score breakdown, and the real restaurant and activity suggestions after he sends you the result code.</p>
+      </article>
+      <aside class="hero-card hero-grid" aria-label="How this works remotely">
+        <div class="mini-card">
+          <span>For him</span>
+          <strong>A natural couples quiz with a playful result summary.</strong>
+        </div>
+        <div class="mini-card">
+          <span>For you</span>
+          <strong>A protected planner dashboard with the real hidden matches.</strong>
+        </div>
+        <div class="mini-card">
+          <span>Remote flow</span>
+          <strong>He finishes, copies a result code, and sends it to you.</strong>
+        </div>
+        <div class="mini-card">
+          <span>Privacy</span>
+          <strong>The hidden suggestions only appear in planner mode.</strong>
+        </div>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <article class="panel quiz-card">
+        <div class="meta">
+          <span class="pill">Cute and low-pressure</span>
+          <span class="pill">Works remotely</span>
+          <span class="pill">Planner panel stays hidden</span>
+        </div>
+
+        <div id="quizView">
+          <div class="progress-wrap">
+            <div class="progress-top">
+              <span id="progressLabel">Question 1 of 12</span>
+              <span id="progressPercent">8%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+
+          <form id="quizForm">
+            <section class="question active" data-step="0">
+              <h2>Pick the one that feels most like your ideal vibe.</h2>
+              <p>No overthinking. Just pick the one that feels most like you.</p>
+              <div class="options"><button type="button" class="choice" data-name="mood" data-value="cozy">Cozy and easy</button><button type="button" class="choice" data-name="mood" data-value="playful">Playful and fun</button><button type="button" class="choice" data-name="mood" data-value="fancy">A bit fancy and special</button><button type="button" class="choice" data-name="mood" data-value="adventurous">A little adventurous</button></div>
+            </section>
+            <section class="question" data-step="1">
+              <h2>Which timing usually feels the nicest for a date?</h2>
+              <p>Different times somehow create very different moods.</p>
+              <div class="options"><button type="button" class="choice" data-name="timing" data-value="day">Brunch or daytime</button><button type="button" class="choice" data-name="timing" data-value="sunset">Sunset into evening</button><button type="button" class="choice" data-name="timing" data-value="night">Late evening</button></div>
+            </section>
+            <section class="question" data-step="2">
+              <h2>What usually makes a date feel really good to you?</h2>
+              <p>The answer here says a lot about what makes a date feel memorable.</p>
+              <div class="options"><button type="button" class="choice" data-name="priority" data-value="food">The food</button><button type="button" class="choice" data-name="priority" data-value="conversation">The conversation</button><button type="button" class="choice" data-name="priority" data-value="activity">Doing something fun together</button><button type="button" class="choice" data-name="priority" data-value="scenery">The overall atmosphere</button></div>
+            </section>
+            <section class="question" data-step="3">
+              <h2>Which sounds more naturally fun as a date?</h2>
+              <p>Pick the kind of experience that sounds naturally more “us.”</p>
+              <div class="options"><button type="button" class="choice" data-name="experienceType" data-value="handson">Doing something together and getting a little involved</button><button type="button" class="choice" data-name="experienceType" data-value="immersive">Sitting back and getting immersed in something cinematic</button><button type="button" class="choice" data-name="experienceType" data-value="balanced">A balance of both sounds nice</button></div>
+            </section>
+            <section class="question" data-step="4">
+              <h2>Which meal situation sounds the most appealing?</h2>
+              <p>Food questions are always revealing, so this one stays.</p>
+              <div class="options"><button type="button" class="choice" data-name="foodStyle" data-value="reliable">Something familiar-feeling with a twist</button><button type="button" class="choice" data-name="foodStyle" data-value="new">Trying somewhere new together</button><button type="button" class="choice" data-name="foodStyle" data-value="special">A meal that feels a bit special</button></div>
+            </section>
+            <section class="question" data-step="5">
+              <h2>Pick the spice level that sounds most comfortable.</h2>
+              <p>Not a trap. Just an important personality detail.</p>
+              <div class="options"><button type="button" class="choice" data-name="spice" data-value="low">Just a small hint is perfect</button><button type="button" class="choice" data-name="spice" data-value="medium">A bit of spice is nice</button><button type="button" class="choice" data-name="spice" data-value="adventurous">I am open as long as it still feels approachable</button></div>
+            </section>
+            <section class="question" data-step="6">
+              <h2>Which one sounds most like your style?</h2>
+              <p>Some people are taste-first, some are vibe-first, some are comfort-first.</p>
+              <div class="options"><button type="button" class="choice" data-name="restoPriority" data-value="quality">The food has to be really good</button><button type="button" class="choice" data-name="restoPriority" data-value="atmosphere">The vibe matters most</button><button type="button" class="choice" data-name="restoPriority" data-value="comfort">Comfort matters most</button></div>
+            </section>
+            <section class="question" data-step="7">
+              <h2>What kind of fun sounds best right now?</h2>
+              <p>This one is basically about what kind of fun sounds the most natural.</p>
+              <div class="options"><button type="button" class="choice" data-name="activityEnergy" data-value="interactive">Interactive, mentally engaging, and a little active</button><button type="button" class="choice" data-name="activityEnergy" data-value="vigorous">Energetic, exciting, and a bit intense</button><button type="button" class="choice" data-name="activityEnergy" data-value="luxury">Relaxed but polished, like a treat</button></div>
+            </section>
+            <section class="question" data-step="8">
+              <h2>How far feels reasonable for a good date plan?</h2>
+              <p>A great plan can still feel wrong if it takes too much effort to get there.</p>
+              <div class="options"><button type="button" class="choice" data-name="travel" data-value="short">Keep it fairly close and easy</button><button type="button" class="choice" data-name="travel" data-value="medium">Up to around 30 minutes is fine</button><button type="button" class="choice" data-name="travel" data-value="long">If it is worth it, I do not mind going farther</button></div>
+            </section>
+            <section class="question" data-step="9">
+              <h2>How dressed up would you actually enjoy being?</h2>
+              <p>Sometimes the outfit says more than the words do.</p>
+              <div class="options"><button type="button" class="choice" data-name="dress" data-value="comfy">Casual and comfy</button><button type="button" class="choice" data-name="dress" data-value="smart">Smart casual</button><button type="button" class="choice" data-name="dress" data-value="dressup">Make it a bit of a dress-up moment</button></div>
+            </section>
+            <section class="question" data-step="10">
+              <h2>What kind of thing instantly makes a date feel romantic to you?</h2>
+              <p>This answer is usually the most revealing one.</p>
+              <label class="sr-only" for="romanticHint">Romantic hint</label><textarea id="romanticHint" class="free-text" data-name="romanticHint" placeholder="Examples: warm lighting, privacy, music, trying something new together, a beautiful setting..."></textarea>
+            </section>
+            <section class="question" data-step="11">
+              <h2>What can quietly ruin the mood on a date for you?</h2>
+              <p>This is where the real deal-breakers usually show up.</p>
+              <label class="sr-only" for="avoidHint">Things to avoid</label><textarea id="avoidHint" class="free-text" data-name="avoidHint" placeholder="Examples: too noisy, too far, too much effort, too formal, too long, not enough interaction..."></textarea>
+            </section>
+            <div class="controls"><button type="button" class="btn btn-secondary" id="prevBtn">Back</button><button type="button" class="btn btn-primary" id="nextBtn">Finish quiz</button></div>
+          </form>
+        </div>
+
+        <section id="participantResult" class="result" aria-live="polite">
+          <div class="eyebrow">Your quiz vibe</div>
+          <h2 style="margin-top:var(--space-4);">Your date personality summary</h2>
+          <p style="color:var(--color-text-muted);">This is the friendly version meant for the person taking the quiz.</p>
+          <div class="result-grid">
+            <div class="result-card"><h4 id="participantTitle">—</h4><p id="participantText"></p></div>
+            <div class="result-card"><h4 id="participantStyle">—</h4><p id="participantStyleText"></p></div>
+            <div class="result-card"><h4 id="participantFood">—</h4><p id="participantFoodText"></p></div>
+            <div class="result-card"><h4 id="participantFun">—</h4><p id="participantFunText"></p></div>
+          </div>
+          <div class="insight-box">
+            <strong>Send this result code to your partner</strong>
+            <p style="margin-top:.6rem; color:var(--color-text-muted);">Copy this code and send it back so they can see your quiz results too.</p>
+            <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin-top:1rem;">
+              <div id="shareCode" class="mini-pill" style="font-size:var(--text-sm); font-weight:700; color:var(--color-text); padding:.8rem 1rem;">No code yet</div>
+              <button type="button" class="btn btn-secondary" id="copyCodeBtn">Copy code</button>
+            </div>
+            <p class="subtle" style="margin-top:.8rem;">The code contains your answers in a compact format, so your partner can open the planner side and view the hidden match suggestions from their own device.</p>
+          </div>
+          <div class="controls"><button type="button" class="btn btn-secondary" id="editBtn">Edit answers</button><button type="button" class="btn btn-primary" id="restartBtn">Restart quiz</button></div>
+        </section>
+      </article>
+
+      <aside class="panel side-panel">
+        <div>
+          <h3>What he sees</h3>
+          <p>He only sees a normal-feeling quiz and a harmless interpretation of his vibe. No restaurant names or hidden suggestions appear in the participant result.</p>
+        </div>
+        <div class="tip-list">
+          <div class="tip-item">After finishing, he gets a result code to send back to you.</div>
+          <div class="tip-item">That code is what lets you open the planner mode remotely and see the real option mapping.</div>
+          <div class="tip-item">You can send the same website link to him. The hidden planner section still requires your passcode.</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel planner-panel" style="margin-top:var(--space-8);">
+      <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start;">
+        <div>
+          <div class="eyebrow" style="background:color-mix(in srgb, var(--color-secret) 12%, var(--color-surface)); color:var(--color-secret);">Planner mode</div>
+          <h3 style="margin-top:var(--space-4);">Hidden dashboard for you only</h3>
+          <p>Open this after he sends you the result code. It reveals the exact answers, score breakdown, and real option suggestions.</p>
+        </div>
+        <div class="mini-pill secret-pill">Passcode protected</div>
+      </div>
+
+      <div id="plannerLogin" class="planner-login">
+        <input id="plannerCodeInput" class="input" type="password" placeholder="Enter planner passcode" aria-label="Planner passcode" />
+        <input id="resultCodeInput" class="input" type="text" placeholder="Paste his result code here" aria-label="Result code" />
+        <div class="controls" style="margin-top:0;"><button type="button" class="btn btn-secret" id="unlockBtn">Open planner view</button></div>
+        <p class="subtle">Default planner passcode: <strong>starlight</strong>. Change it inside the code later if you want a private one.</p>
+      </div>
+
+      <section id="plannerView" class="planner-view">
+        <div class="planner-grid">
+          <div class="planner-card"><h4 id="comboTitle">—</h4><p id="comboText"></p></div>
+          <div class="planner-card"><h4 id="backupTitle">—</h4><p id="backupText"></p></div>
+          <div class="planner-card"><h4 id="restoTitle">—</h4><p id="restoText"></p></div>
+          <div class="planner-card"><h4 id="activityTitle">—</h4><p id="activityText"></p></div>
+        </div>
+        <div class="insight-box">
+          <strong>Exact answer clues</strong>
+          <p id="hintSummary" style="margin-top:.6rem; color:var(--color-text-muted);"></p>
+          <div class="tag-cloud" id="signalTags"></div>
+        </div>
+        <table class="score-table" aria-label="Option score breakdown">
+          <thead><tr><th>Option</th><th>Score</th><th>Why it matched</th></tr></thead>
+          <tbody id="scoreRows"></tbody>
+        </table>
+        <table class="score-table" aria-label="Exact answers">
+          <thead><tr><th>Question area</th><th>Chosen answer</th></tr></thead>
+          <tbody id="answerRows"></tbody>
+        </table>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const PLANNER_PASSCODE = 'starlight';
+    const questions = Array.from(document.querySelectorAll('.question'));
+    const progressFill = document.getElementById('progressFill');
+    const progressLabel = document.getElementById('progressLabel');
+    const progressPercent = document.getElementById('progressPercent');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const quizView = document.getElementById('quizView');
+    const participantResult = document.getElementById('participantResult');
+    const form = document.getElementById('quizForm');
+    const editBtn = document.getElementById('editBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const copyCodeBtn = document.getElementById('copyCodeBtn');
+    const shareCode = document.getElementById('shareCode');
+    const plannerCodeInput = document.getElementById('plannerCodeInput');
+    const resultCodeInput = document.getElementById('resultCodeInput');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const plannerView = document.getElementById('plannerView');
+
+    const answers = { mood:'', timing:'', priority:'', experienceType:'', foodStyle:'', spice:'', restoPriority:'', activityEnergy:'', travel:'', dress:'', romanticHint:'', avoidHint:'' };
+    const answerLabels = {
+      mood: 'Overall vibe', timing: 'Preferred timing', priority: 'What matters most', experienceType: 'Fun style', foodStyle: 'Meal preference', spice: 'Spice comfort', restoPriority: 'Restaurant priority', activityEnergy: 'Activity energy', travel: 'Travel tolerance', dress: 'Dress level', romanticHint: 'Romantic trigger', avoidHint: 'Mood killer'
+    };
+    const optionText = {
+      mood: { cozy: 'Cozy and easy', playful: 'Playful and fun', fancy: 'A bit fancy and special', adventurous: 'A little adventurous' },
+      timing: { day: 'Brunch or daytime', sunset: 'Sunset into evening', night: 'Late evening' },
+      priority: { food: 'The food', conversation: 'The conversation', activity: 'Doing something fun together', scenery: 'The overall atmosphere' },
+      experienceType: { handson: 'Doing something together and getting a little involved', immersive: 'Sitting back and getting immersed in something cinematic', balanced: 'A balance of both sounds nice' },
+      foodStyle: { reliable: 'Something familiar-feeling with a twist', new: 'Trying somewhere new together', special: 'A meal that feels a bit special' },
+      spice: { low: 'Just a small hint is perfect', medium: 'A bit of spice is nice', adventurous: 'I am open as long as it still feels approachable' },
+      restoPriority: { quality: 'The food has to be really good', atmosphere: 'The vibe matters most', comfort: 'Comfort matters most' },
+      activityEnergy: { interactive: 'Interactive, mentally engaging, and a little active', vigorous: 'Energetic, exciting, and a bit intense', luxury: 'Relaxed but polished, like a treat' },
+      travel: { short: 'Keep it fairly close and easy', medium: 'Up to around 30 minutes is fine', long: 'If it is worth it, I do not mind going farther' },
+      dress: { comfy: 'Casual and comfy', smart: 'Smart casual', dressup: 'Make it a bit of a dress-up moment' }
+    };
+
+    const restaurantDefs = {
+      resto1: { label: 'Restaurant A · Fancy Indian', short: 'Fancy new Indian dinner', description: 'A dressier, more special-feeling new Indian restaurant with approachable spice.', score: 0, reasons: [] },
+      resto2: { label: 'Restaurant B · Chill French-Indian fusion', short: 'Chill French-Indian fusion dinner', description: 'A more relaxed and familiar-feeling French-Indian fusion choice with a subtle twist.', score: 0, reasons: [] }
+    };
+    const activityDefs = {
+      act1: { label: 'Activity A · Pop-piano trial for two', short: 'Pop-piano trial lesson for two', description: 'Playful, mentally engaging, lightly physical, and around 30 minutes away.', score: 0, reasons: [] },
+      act2: { label: 'Activity B · 4D Star Wars movie', short: '4D Star Wars movie experience', description: 'Fun, vigorous, high-stimulation, immersive, but about 1 hour away.', score: 0, reasons: [] },
+      act3: { label: 'Activity C · Fancy VIP movie night', short: 'VIP theatre movie night', description: 'A closer, polished cinema option with a premium atmosphere.', score: 0, reasons: [] }
+    };
+
+    let current = 0;
+    const total = questions.length;
+
+    function updateProgress() {
+      const pct = Math.round(((current + 1) / total) * 100);
+      progressFill.style.width = pct + '%';
+      progressLabel.textContent = `Question ${current + 1} of ${total}`;
+      progressPercent.textContent = `${pct}%`;
+      prevBtn.disabled = current === 0;
+      nextBtn.textContent = current === total - 1 ? 'Finish quiz' : 'Next';
+    }
+    function showQuestion(index) {
+      questions.forEach((q, i) => q.classList.toggle('active', i === index));
+      current = index; updateProgress();
+    }
+    function validateStep(index) {
+      const active = questions[index];
+      const textarea = active.querySelector('textarea');
+      if (textarea) { answers[textarea.dataset.name] = textarea.value.trim(); return true; }
+      return !!active.querySelector('.choice.selected');
+    }
+    document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => {
+      const group = btn.dataset.name; const scope = btn.closest('.options');
+      scope.querySelectorAll('.choice').forEach(choice => choice.classList.remove('selected'));
+      btn.classList.add('selected'); answers[group] = btn.dataset.value;
+    }));
+    nextBtn.addEventListener('click', () => { if (!validateStep(current)) return alert('Choose an answer before moving on.'); current < total - 1 ? showQuestion(current + 1) : renderParticipantResult(); });
+    prevBtn.addEventListener('click', () => { if (current > 0) showQuestion(current - 1); });
+
+    function resetScores() { Object.values(restaurantDefs).forEach(item => { item.score = 0; item.reasons = []; }); Object.values(activityDefs).forEach(item => { item.score = 0; item.reasons = []; }); }
+    function addScore(group, key, points, reason) { group[key].score += points; if (reason) group[key].reasons.push(reason); }
+
+    function scoreOptions() {
+      resetScores();
+      if (answers.mood === 'fancy') { addScore(restaurantDefs, 'resto1', 3, 'He seems open to something that feels more special and elevated.'); addScore(activityDefs, 'act3', 3, 'A polished cinema night fits a more dressed-up mood.'); }
+      if (answers.mood === 'cozy') { addScore(restaurantDefs, 'resto2', 3, 'An easygoing mood suits the more relaxed fusion restaurant.'); addScore(activityDefs, 'act3', 2, 'A softer premium movie plan fits a cozy mood.'); }
+      if (answers.mood === 'playful') { addScore(activityDefs, 'act1', 3, 'Playful energy lines up especially well with the piano idea.'); addScore(activityDefs, 'act2', 2, 'The 4D movie can also work for a playful mood.'); }
+      if (answers.mood === 'adventurous') { addScore(restaurantDefs, 'resto1', 2, 'Trying a new Indian restaurant feels a little more adventurous.'); addScore(activityDefs, 'act2', 3, 'The 4D movie is the boldest activity option.'); }
+      if (answers.timing === 'night') { addScore(restaurantDefs, 'resto1', 2, 'Late evening suits the dressier dinner option.'); addScore(activityDefs, 'act3', 2, 'A premium movie night feels natural later in the day.'); }
+      if (answers.timing === 'sunset') { addScore(restaurantDefs, 'resto1', 1, 'Sunset into evening can make the fancy dinner feel especially nice.'); addScore(restaurantDefs, 'resto2', 1, 'It also works well for a relaxed dinner.'); addScore(activityDefs, 'act3', 1, 'A cinema plan fits neatly after sunset.'); }
+      if (answers.timing === 'day') addScore(activityDefs, 'act1', 2, 'A daytime plan fits the piano activity naturally.');
+      if (answers.priority === 'food') { addScore(restaurantDefs, 'resto1', 2, 'Food-first thinking slightly favors the more special dinner.'); addScore(restaurantDefs, 'resto2', 1, 'The fusion option still benefits if the meal is the main event.'); }
+      if (answers.priority === 'conversation') { addScore(restaurantDefs, 'resto2', 2, 'A chill setting is often better when conversation matters most.'); addScore(activityDefs, 'act3', 1, 'A softer movie plan may also leave better room around the experience.'); }
+      if (answers.priority === 'activity') { addScore(activityDefs, 'act1', 3, 'A real shared activity makes the piano lesson strong.'); addScore(activityDefs, 'act2', 1, 'The 4D movie still has event energy.'); }
+      if (answers.priority === 'scenery') { addScore(activityDefs, 'act3', 2, 'The VIP theatre helps if atmosphere matters a lot.'); addScore(restaurantDefs, 'resto1', 1, 'A fancier restaurant also benefits from atmosphere-first thinking.'); }
+      if (answers.experienceType === 'handson') addScore(activityDefs, 'act1', 4, 'Doing something together is exactly what the piano plan offers.');
+      if (answers.experienceType === 'immersive') { addScore(activityDefs, 'act2', 3, 'A bigger-screen, more intense movie experience fits well here.'); addScore(activityDefs, 'act3', 2, 'A premium cinema night also suits immersive energy.'); }
+      if (answers.experienceType === 'balanced') { addScore(activityDefs, 'act1', 2, 'The piano plan gives shared interaction.'); addScore(activityDefs, 'act3', 2, 'The VIP theatre gives polished relaxation.'); }
+      if (answers.foodStyle === 'new') addScore(restaurantDefs, 'resto1', 4, 'Trying somewhere new points clearly to the Indian restaurant.');
+      if (answers.foodStyle === 'reliable') addScore(restaurantDefs, 'resto2', 4, 'A familiar-feeling meal strongly supports the fusion option.');
+      if (answers.foodStyle === 'special') { addScore(restaurantDefs, 'resto1', 4, 'A special-feeling dinner strongly favors the fancy option.'); addScore(activityDefs, 'act3', 1, 'That same energy also supports the VIP theatre.'); }
+      if (answers.spice === 'low') addScore(restaurantDefs, 'resto2', 2, 'A gentler spice preference leans toward the fusion choice.');
+      if (answers.spice === 'medium') { addScore(restaurantDefs, 'resto1', 1, 'A bit of spice can suit the Indian restaurant.'); addScore(restaurantDefs, 'resto2', 1, 'A bit of spice also fits the fusion dinner.'); }
+      if (answers.spice === 'adventurous') addScore(restaurantDefs, 'resto1', 2, 'Openness to approachable spice gives the new Indian place an edge.');
+      if (answers.restoPriority === 'quality') addScore(restaurantDefs, 'resto1', 2, 'Taste-first thinking slightly favors the fancier restaurant.');
+      if (answers.restoPriority === 'atmosphere') { addScore(restaurantDefs, 'resto1', 2, 'Vibe-first leans toward the more elevated restaurant.'); addScore(activityDefs, 'act3', 1, 'It also supports the premium movie mood.'); }
+      if (answers.restoPriority === 'comfort') addScore(restaurantDefs, 'resto2', 3, 'Comfort-first answers strongly favor the chill fusion option.');
+      if (answers.activityEnergy === 'interactive') addScore(activityDefs, 'act1', 4, 'This description matches the piano option almost exactly.');
+      if (answers.activityEnergy === 'vigorous') addScore(activityDefs, 'act2', 4, 'The more intense 4D movie fits that energy best.');
+      if (answers.activityEnergy === 'luxury') addScore(activityDefs, 'act3', 4, 'A polished treat points straight to the VIP theatre.');
+      if (answers.travel === 'short') { addScore(activityDefs, 'act3', 3, 'Preferring a shorter trip favors the closer VIP theatre.'); addScore(activityDefs, 'act1', 1, 'The piano option is still reasonably convenient.'); addScore(activityDefs, 'act2', -2, 'The longer trip weakens the 4D option here.'); }
+      if (answers.travel === 'medium') { addScore(activityDefs, 'act1', 2, 'Around 30 minutes fits the piano option well.'); addScore(activityDefs, 'act3', 1, 'The closer movie option also stays easy.'); }
+      if (answers.travel === 'long') addScore(activityDefs, 'act2', 2, 'Being open to travel keeps the 4D option in play.');
+      if (answers.dress === 'comfy') { addScore(restaurantDefs, 'resto2', 2, 'Casual comfort leans toward the relaxed fusion restaurant.'); addScore(activityDefs, 'act1', 1, 'The piano plan can also feel more easygoing.'); }
+      if (answers.dress === 'smart') { addScore(restaurantDefs, 'resto2', 1, 'Smart casual works well with the fusion dinner.'); addScore(activityDefs, 'act3', 1, 'It also fits a premium movie night nicely.'); }
+      if (answers.dress === 'dressup') { addScore(restaurantDefs, 'resto1', 3, 'Wanting to dress up strongly fits the fancy Indian dinner.'); addScore(activityDefs, 'act3', 2, 'It also aligns with the VIP theatre idea.'); }
+      const avoid = (answers.avoidHint || '').toLowerCase(); const romantic = (answers.romanticHint || '').toLowerCase();
+      if (avoid.includes('far') || avoid.includes('distance') || avoid.includes('travel') || avoid.includes('long')) addScore(activityDefs, 'act2', -2, 'He mentioned distance or longer travel as a downside.');
+      if (avoid.includes('noisy') || avoid.includes('loud') || avoid.includes('too much')) { addScore(activityDefs, 'act2', -2, 'He seems less likely to enjoy the louder or more intense movie setup.'); addScore(restaurantDefs, 'resto2', 1, 'A calmer dinner becomes relatively safer.'); }
+      if (avoid.includes('formal')) { addScore(restaurantDefs, 'resto1', -1, 'Too much formality could weaken the fancy restaurant.'); addScore(activityDefs, 'act3', -1, 'A VIP setting may also feel slightly too polished.'); }
+      if (avoid.includes('physical') || avoid.includes('tiring') || avoid.includes('vigorous') || avoid.includes('effort')) addScore(activityDefs, 'act2', -2, 'He may be less receptive to the more vigorous movie format.');
+      if (avoid.includes('boring') || avoid.includes('just sitting')) addScore(activityDefs, 'act1', 1, 'He may appreciate a more participatory date instead.');
+      if (romantic.includes('new') || romantic.includes('trying something new')) { addScore(restaurantDefs, 'resto1', 1, 'He links romance with novelty, which helps the new restaurant.'); addScore(activityDefs, 'act1', 1, 'A shared new skill can also feel romantic.'); }
+      if (romantic.includes('privacy') || romantic.includes('private') || romantic.includes('quiet')) { addScore(activityDefs, 'act3', 1, 'Privacy or quiet favors the VIP theatre option.'); addScore(restaurantDefs, 'resto2', 1, 'A chill dinner also benefits from that preference.'); }
+      if (romantic.includes('music')) addScore(activityDefs, 'act1', 2, 'A music-related answer clearly boosts the piano lesson.');
+      if (romantic.includes('beautiful') || romantic.includes('setting') || romantic.includes('lighting')) { addScore(restaurantDefs, 'resto1', 1, 'A beautiful setting helps the fancier dinner.'); addScore(activityDefs, 'act3', 1, 'It also fits the polished VIP theatre.'); }
+    }
+
+    function topEntries(group) { return Object.entries(group).sort((a, b) => b[1].score - a[1].score); }
+    function buildSignals() {
+      const tags = [];
+      if (answers.mood) tags.push(`Mood: ${answers.mood}`);
+      if (answers.foodStyle === 'new') tags.push('Likes novelty in food');
+      if (answers.foodStyle === 'reliable') tags.push('Leans familiar in food');
+      if (answers.activityEnergy === 'interactive') tags.push('Wants interaction');
+      if (answers.activityEnergy === 'vigorous') tags.push('Likes higher energy');
+      if (answers.activityEnergy === 'luxury') tags.push('Enjoys polished settings');
+      if (answers.travel === 'short') tags.push('Prefers shorter travel');
+      if (answers.travel === 'long') tags.push('Open to longer travel');
+      if (answers.dress === 'dressup') tags.push('Open to dressing up');
+      if (answers.restoPriority === 'comfort') tags.push('Comfort matters');
+      return tags;
+    }
+
+    function participantInterpretation() {
+      const moodMap = {
+        cozy: ['Soft-hearted planner', 'You seem to like dates that feel calm, comfortable, and emotionally easy to sink into.'],
+        playful: ['Playful spark', 'You seem to enjoy a date most when there is some energy, curiosity, and a bit of fun built in.'],
+        fancy: ['Occasion energy', 'You seem very open to a date that feels polished, thoughtful, and a little elevated.'],
+        adventurous: ['Fresh-experience type', 'You seem to enjoy dates that have a slight sense of novelty or surprise to them.']
+      };
+      const styleMap = {
+        conversation: ['Connection-first', 'When a date goes well, it is probably because the conversation and overall feeling click.'],
+        food: ['Food lover', 'Great food seems to be one of the fastest ways to make a date feel memorable for you.'],
+        activity: ['Shared-moment type', 'Doing something together seems to matter more to you than just sitting somewhere nice.'],
+        scenery: ['Atmosphere seeker', 'You seem sensitive to setting, mood, and the feeling a place creates.']
+      };
+      const foodMap = {
+        reliable: ['Comfort with a twist', 'You may like meals that feel familiar enough to relax into, but still have something interesting about them.'],
+        new: ['Curious palate', 'You seem pretty open to trying something a little new together.'],
+        special: ['Special-night appetite', 'A meal feels best to you when it has a little occasion energy to it.']
+      };
+      const funMap = {
+        interactive: ['Hands-on fun', 'You may enjoy dates more when there is some interaction rather than only watching from the side.'],
+        vigorous: ['Big-energy fun', 'You seem fairly open to more intense, exciting experiences when the mood is right.'],
+        luxury: ['Treat-yourself fun', 'You seem to like experiences that feel polished, comfy, and a little indulgent.']
+      };
+      return {
+        mood: moodMap[answers.mood] || ['Balanced vibe', 'You seem to enjoy a bit of balance rather than one extreme.'],
+        style: styleMap[answers.priority] || ['Flexible style', 'You seem open to different kinds of good dates depending on the mood.'],
+        food: foodMap[answers.foodStyle] || ['Flexible eater', 'Your food answers suggest you care more about the overall experience than one rigid format.'],
+        fun: funMap[answers.activityEnergy] || ['Flexible fun', 'Your answers suggest you can enjoy very different kinds of dates if the vibe is right.']
+      };
+    }
+
+    function encodeAnswers(obj) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+    }
+    function decodeAnswers(str) {
+      return JSON.parse(decodeURIComponent(escape(atob(str))));
+    }
+
+    function renderParticipantResult() {
+      scoreOptions();
+      const vibe = participantInterpretation();
+      document.getElementById('participantTitle').textContent = vibe.mood[0];
+      document.getElementById('participantText').textContent = vibe.mood[1];
+      document.getElementById('participantStyle').textContent = vibe.style[0];
+      document.getElementById('participantStyleText').textContent = vibe.style[1];
+      document.getElementById('participantFood').textContent = vibe.food[0];
+      document.getElementById('participantFoodText').textContent = vibe.food[1];
+      document.getElementById('participantFun').textContent = vibe.fun[0];
+      document.getElementById('participantFunText').textContent = vibe.fun[1];
+      const code = encodeAnswers(answers);
+      shareCode.textContent = code;
+      quizView.style.display = 'none';
+      participantResult.classList.add('active');
+      participantResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    copyCodeBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(shareCode.textContent); copyCodeBtn.textContent = 'Copied'; setTimeout(() => copyCodeBtn.textContent = 'Copy code', 1200); }
+      catch { alert('Copy failed. He can still manually copy the code.'); }
+    });
+
+    function renderPlanner(decoded) {
+      Object.assign(answers, decoded);
+      scoreOptions();
+      const rankedRestaurants = topEntries(restaurantDefs);
+      const rankedActivities = topEntries(activityDefs);
+      const bestRestaurant = rankedRestaurants[0][1];
+      const secondRestaurant = rankedRestaurants[1][1];
+      const bestActivity = rankedActivities[0][1];
+      const secondActivity = rankedActivities[1][1];
+      document.getElementById('comboTitle').textContent = `Best match: ${bestRestaurant.short} + ${bestActivity.short}`;
+      document.getElementById('comboText').textContent = 'This pair came out on top because it best fits his mood, food comfort-versus-novelty balance, activity energy, dress level, and travel tolerance.';
+      document.getElementById('backupTitle').textContent = `Backup idea: ${secondRestaurant.short} + ${secondActivity.short}`;
+      document.getElementById('backupText').textContent = 'Keep this as your fallback if booking, timing, or mood changes.';
+      document.getElementById('restoTitle').textContent = bestRestaurant.label;
+      document.getElementById('restoText').textContent = `${bestRestaurant.description} ${bestRestaurant.reasons.slice(0,2).join(' ')}`;
+      document.getElementById('activityTitle').textContent = bestActivity.label;
+      document.getElementById('activityText').textContent = `${bestActivity.description} ${bestActivity.reasons.slice(0,2).join(' ')}`;
+      const romantic = answers.romanticHint ? `His idea of romantic: “${answers.romanticHint}.”` : 'No romantic clue was entered.';
+      const avoid = answers.avoidHint ? `Things that may kill the vibe: “${answers.avoidHint}.”` : 'No deal-breaker clue was entered.';
+      document.getElementById('hintSummary').textContent = `${romantic} ${avoid}`;
+      const signalTags = document.getElementById('signalTags'); signalTags.innerHTML = '';
+      buildSignals().forEach(signal => { const chip = document.createElement('span'); chip.className = 'mini-tag'; chip.textContent = signal; signalTags.appendChild(chip); });
+      const scoreRows = document.getElementById('scoreRows'); scoreRows.innerHTML = '';
+      [...rankedRestaurants, ...rankedActivities].forEach(([key, item]) => {
+        const row = document.createElement('tr');
+        const why = item.reasons.length ? item.reasons.slice(0,3).join(' ') : 'General fit based on the overall answer pattern.';
+        row.innerHTML = `<td>${item.label}</td><td><span class="score-chip">${item.score}</span></td><td>${why}</td>`;
+        scoreRows.appendChild(row);
+      });
+      const answerRows = document.getElementById('answerRows'); answerRows.innerHTML = '';
+      Object.keys(answerLabels).forEach(key => {
+        const value = key === 'romanticHint' || key === 'avoidHint' ? (answers[key] || '—') : (optionText[key]?.[answers[key]] || '—');
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${answerLabels[key]}</td><td>${value}</td>`;
+        answerRows.appendChild(row);
+      });
+      plannerView.classList.add('active');
+      plannerView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    unlockBtn.addEventListener('click', () => {
+      const pass = plannerCodeInput.value.trim();
+      const code = resultCodeInput.value.trim();
+      if (pass !== PLANNER_PASSCODE) return alert('Wrong planner passcode.');
+      if (!code) return alert('Paste the result code first.');
+      try {
+        const decoded = decodeAnswers(code);
+        renderPlanner(decoded);
+      } catch {
+        alert('That result code looks invalid.');
+      }
+    });
+
+    editBtn.addEventListener('click', () => { participantResult.classList.remove('active'); quizView.style.display = 'block'; showQuestion(0); });
+    restartBtn.addEventListener('click', () => {
+      Object.keys(answers).forEach(key => answers[key] = '');
+      form.reset(); document.querySelectorAll('.choice').forEach(choice => choice.classList.remove('selected'));
+      participantResult.classList.remove('active'); quizView.style.display = 'block'; shareCode.textContent = 'No code yet'; showQuestion(0);
+    });
+
+    (function(){
+      const t=document.querySelector('[data-theme-toggle]'); const r=document.documentElement;
+      let d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'; r.setAttribute('data-theme',d);
+      function paint(){ t.setAttribute('aria-label','Switch to '+(d==='dark'?'light':'dark')+' mode'); t.innerHTML = d==='dark' ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'; }
+      paint(); t.addEventListener('click',()=>{ d=d==='dark'?'light':'dark'; r.setAttribute('data-theme',d); paint(); });
+    })();
+    showQuestion(0);
+  </script>
+</body>
+</html>
